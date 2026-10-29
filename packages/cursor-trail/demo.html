@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>cursor-trail · 独立预览</title>
+    <!-- 三件套之三：最小预览。本页不依赖主应用。 -->
+    <link rel="stylesheet" href="./style.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #eeeeee;
+        color: #1d1812;
+        font: 12px/1.5 system-ui, sans-serif;
+      }
+      .demo-stage {
+        position: relative;
+        height: 100vh;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+      }
+      .demo-title {
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        pointer-events: none;
+      }
+      .demo-hint {
+        margin-top: 8px;
+        opacity: 0.6;
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 400;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-stage cv-trail" id="stage">
+      <div class="demo-title">
+        cursor trail
+        <p class="demo-hint">在这个区域里晃鼠标，或者滚动页面</p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { createCursorTrail } from './index.js';
+
+      // 用 8 个渐变方块当"照片"，保证 demo 零外部依赖
+      const tones = [18, 40, 200, 222, 246, 270, 300, 336];
+      const images = tones.map(
+        (h) =>
+          'data:image/svg+xml;utf8,' +
+          encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+               <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                 <stop offset="0" stop-color="hsl(${h},40%,74%)"/>
+                 <stop offset="1" stop-color="hsl(${(h + 24) % 360},36%,44%)"/>
+               </linearGradient></defs>
+               <rect width="120" height="120" fill="url(#g)"/>
+             </svg>`
+          )
+      );
+
+      const trail = createCursorTrail({
+        container: document.getElementById('stage'),
+        images,
+      });
+
+      window.__demo = trail;
+    </script>
+  </body>
+</html>

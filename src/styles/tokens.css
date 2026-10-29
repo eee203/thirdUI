@@ -1,0 +1,78 @@
+/**
+ * 设计令牌（样式层）
+ *
+ * 职责：把原站测出来的色板 / 字阶 / 圆角 / 缓动集中成 CSS 变量。
+ * 关键决策：
+ *   · 统一前缀 --cv-（cloneOS REF-A 要求），与 packages 内部变量不冲突。
+ *   · 基准字号沿用原站 body 12px —— 原站所有间距都用 em 表达，
+ *     改这一个值会让整站的间距与字号同步缩放，这是它版式节奏好调的原因。
+ */
+:root {
+  /* ---- 色板（原站 :root 原文） ---- */
+  --cv-cream: #eeeeee;
+  --cv-cream-dark: #dddddd;
+  --cv-cream-dark-hover: #cdcdcd;
+  --cv-white: #ffffff;
+  --cv-ink: #1d1812;
+  --cv-ink-muted: #524d46;
+  --cv-ink-muted-inverted: #747474;
+  --cv-orange: #fe5416;
+  --cv-blue: #0000ff;
+  --cv-border: rgba(0, 0, 0, 0.2);
+  --cv-border-muted: rgba(0, 0, 0, 0.07);
+  --cv-border-inverted: rgba(255, 255, 255, 0.2);
+
+  /* ---- 字体 ---- */
+  --cv-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  /* 原站用商业字体 Eiko，本项目用同属高对比衬线的 Cormorant Garamond 替代（见 SPEC §1.2 第 8 条） */
+  --cv-font-serif: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  --cv-font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+
+  /* ---- 字阶（em 基准 = 12px） ---- */
+  --cv-fs-body: 1em;
+  --cv-fs-meta: 0.8em;
+  --cv-fs-small: 0.7em;
+  --cv-fs-h3: 1em;
+  --cv-fs-display: 5em;
+  --cv-fs-title: 4em;
+
+  /* ---- 圆角 ---- */
+  --cv-radius-card: 12px;
+  --cv-radius-btn: 6px;
+  --cv-radius-modal: 8px;
+  --cv-radius-cover: 24%;
+
+  /* ---- 缓动（原站原文） ---- */
+  --cv-ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --cv-ease-spring: cubic-bezier(0.3, -0.46, 0.6, 2.1);
+  --cv-ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --cv-ease-ring: cubic-bezier(0.5, 1, 0.89, 1);
+
+  /* ---- 动效时长 ---- */
+  --cv-dur-enter: 1s;
+  --cv-dur-enter-blur: 0.8s;
+  --cv-dur-hover: 0.35s;
+  --cv-dur-fade: 0.6s;
+
+  /* ---- 图层 ---- */
+  --cv-z-ring: 1;
+  --cv-z-fade: 2;
+  --cv-z-content: 3;
+  --cv-z-player: 40;
+  --cv-z-modal: 60;
+}
+
+/* 移动端断点：原站只有 768px 一档（max-width: 768px） */
+@media screen and (max-width: 768px) {
+  :root {
+    --cv-ring-scale: 0.5; /* 原站 --carouselScale: 0.5 */
+    --cv-fs-display: 3.4em;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  :root {
+    --cv-ring-scale: 1;
+  }
+}

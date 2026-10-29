@@ -1,0 +1,29 @@
+/**
+ * @package cursor-trail · style.css
+ * 拖尾小图样式 —— 尺寸 200×200（原站原文），object-fit: contain。
+ * 注意：容器必须有 position: relative + overflow: hidden，否则小图会溢出。
+ */
+
+.cv-trail {
+  position: relative;
+  overflow: hidden;
+}
+
+.cv-trail__img {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  transform-origin: center;
+  pointer-events: none;
+  will-change: transform, opacity;
+  user-select: none;
+  border-radius: 4px;
+}
+
+@media screen and (max-width: 768px) {
+  .cv-trail__img {
+    width: 120px;
+    height: 120px;
+  }
+}

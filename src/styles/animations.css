@@ -1,0 +1,66 @@
+/**
+ * 入场与页面过渡（样式层）
+ *
+ * 职责：把原站的三种入场（fadeIn / fadeUp / blurIn）+ 路由切换淡入，统一成 .cv-anim--* 变体。
+ * 关键决策：时长/延迟全部走 CSS 变量（--cv-anim-duration / --cv-anim-delay），
+ *          这样组件里只传两个数字，不用为每个元素写一条 transition 规则。
+ */
+
+.cv-anim {
+  --cv-anim-duration: var(--cv-dur-enter);
+  --cv-anim-delay: 0s;
+  transition-property: opacity, transform, filter;
+  transition-duration: var(--cv-anim-duration);
+  transition-delay: var(--cv-anim-delay);
+  transition-timing-function: var(--cv-ease-out);
+  will-change: opacity, transform, filter;
+}
+
+.cv-anim--fade-in {
+  opacity: 0;
+}
+.cv-anim--fade-in.animated {
+  opacity: 1;
+}
+
+.cv-anim--fade-up {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+}
+.cv-anim--fade-up.animated {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.cv-anim--blur-in {
+  opacity: 0;
+  filter: blur(8px);
+}
+.cv-anim--blur-in.animated {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* ---------- 路由切换：对应原站 swup 的 .transition-fade ---------- */
+.cv-page-enter-active,
+.cv-page-leave-active {
+  transition: opacity var(--cv-dur-fade) ease;
+}
+
+.cv-page-enter-from,
+.cv-page-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-anim {
+    transition: none !important;
+  }
+  .cv-anim--fade-in,
+  .cv-anim--fade-up,
+  .cv-anim--blur-in {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}

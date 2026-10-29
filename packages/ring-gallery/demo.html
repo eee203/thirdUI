@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ring-gallery · 独立预览</title>
+    <!--
+      三件套之三：最小预览。
+      这个页面不依赖主应用，只引入本包的 index.js + style.css，
+      用来证明"组件能脱离页面单独复用"（REF-A 第 4 条 / REQ-18）。
+    -->
+    <link rel="stylesheet" href="./style.css" />
+    <style>
+      :root {
+        --cv-ring-scale: 1;
+        --cv-orange: #fe5416;
+        --cv-blue: #0000ff;
+        --cv-cream: #eeeeee;
+        --cv-ink: #1d1812;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--cv-cream);
+        color: var(--cv-ink);
+        font: 12px/1.5 system-ui, sans-serif;
+        overflow: hidden;
+      }
+      .demo-stage {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .demo-hint {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+        opacity: 0.7;
+        letter-spacing: 0.04em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-stage">
+      <div class="cv-ring" id="ring"></div>
+      <p class="demo-hint">hover 任意一张 → 观察环上涟漪；环整体 120s/圈</p>
+    </div>
+
+    <script type="module">
+      import { createRingGallery } from './index.js';
+
+      const COUNT = 22;
+      const ring = document.getElementById('ring');
+
+      // 用渐变方块代替真实封面，保证 demo 零外部依赖
+      const HUES = [18, 34, 200, 220, 244, 268, 292, 316, 340, 62, 148];
+      for (let i = 0; i < COUNT; i += 1) {
+        const h = HUES[i % HUES.length];
+        const btn = document.createElement('button');
+        btn.className = 'cv-ring__item';
+        btn.dataset.ringIndex = String(i);
+        btn.setAttribute('aria-label', `item ${i}`);
+        btn.innerHTML = `<img alt="" src="data:image/svg+xml;utf8,${encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+             <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+               <stop offset="0" stop-color="hsl(${h},42%,72%)"/>
+               <stop offset="1" stop-color="hsl(${(h + 28) % 360},38%,48%)"/>
+             </linearGradient></defs>
+             <rect width="120" height="120" fill="url(#g)"/>
+           </svg>`
+        )}" />`;
+        ring.appendChild(btn);
+      }
+
+      const gallery = createRingGallery({
+        root: ring,
+        items: Array.from(ring.querySelectorAll('.cv-ring__item')),
+      });
+      gallery.reveal();
+
+      window.__demo = gallery;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,241 @@
+/**
+ * @package ring-gallery · style.css
+ * 环形唱片墙样式 —— 全部走 CSS 变量，外部只需覆盖变量即可换肤 / 换尺寸。
+ *
+ * 布局数学（与原站完全一致）：
+ *   圆环直径 D = --cv-diameter（默认 120vh），半径 R = D / 2
+ *   第 i 项角度 θ = 2π / N × i
+ *   左上角坐标 x = D/2 + R·cos(θ) − size/2
+ *              y = D/2 + R·sin(θ) − size/2
+ *   项自身旋转 = 360° / N × i + 90°（让方图沿半径方向"立"起来）
+ */
+
+.cv-ring {
+  --cv-item-count: 22;
+  --cv-diameter: 120vh;
+  --cv-radius: calc(var(--cv-diameter) / 2);
+  --cv-artwork-size: calc((220 / var(--cv-item-count)) * 1vh);
+  --cv-pi: 3.141592653589793;
+  --cv-spin-duration: 120s;
+  --cv-spin-offset: 45deg;
+  /* 注意：这里**不要**再声明 --cv-ring-scale。
+     环形容器自己声明会覆盖外部（:root / 媒体查询）给的值，
+     导致移动端的 0.5 永远不生效 —— 实测踩过。
+     由使用方在 :root 上给，容器只继承。 */
+
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: var(--cv-diameter);
+  height: var(--cv-diameter);
+  border-radius: 50%;
+  transform-origin: center center;
+  animation: cv-ring-spin var(--cv-spin-duration) linear infinite;
+  will-change: transform;
+  /* 这个圆盘有 120vh 见方，若参与命中测试会把整个首屏中央的点击/选中全吃掉。
+     圆环本身不可交互，事件只交给里面的封面。 */
+  pointer-events: none;
+}
+
+@keyframes cv-ring-spin {
+  from {
+    transform: translateX(-50%) rotate(var(--cv-spin-offset)) scale(var(--cv-ring-scale));
+  }
+  to {
+    transform: translateX(-50%)
+      rotate(calc(var(--cv-spin-offset) + 360deg))
+      scale(var(--cv-ring-scale));
+  }
+}
+
+/* 暂停能力：给外部留的开关（例如播放器打开时可暂停，本轮不启用） */
+.cv-ring.is-paused {
+  animation-play-state: paused;
+}
+
+/* ---------- 单张封面 ---------- */
+.cv-ring__item {
+  --cv-step: calc((2 * var(--cv-pi)) / var(--cv-item-count));
+  --cv-angle: calc(var(--cv-step) * var(--cv-item-index, 0));
+  --cv-x: calc(
+    var(--cv-diameter) / 2 + var(--cv-radius) * cos(var(--cv-angle)) -
+      var(--cv-artwork-size) / 2
+  );
+  --cv-y: calc(
+    var(--cv-diameter) / 2 + var(--cv-radius) * sin(var(--cv-angle)) -
+      var(--cv-artwork-size) / 2
+  );
+
+  --cv-amp: 0;
+  --cv-item-delay: 0ms;
+  --cv-item-opacity: 1;
+  --cv-item-blur: 0px;
+
+  position: absolute;
+  left: var(--cv-x);
+  top: var(--cv-y);
+  width: var(--cv-artwork-size);
+  height: var(--cv-artwork-size);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 500px;
+  transform: rotate(calc(360deg / var(--cv-item-count) * var(--cv-item-index, 0) + 90deg))
+    scale(calc(1 + var(--cv-amp)));
+  /* 末端过冲的弹跳曲线：这是"抖一下"手感的来源 */
+  transition: transform 0.35s var(--cv-item-delay) cubic-bezier(0.3, -0.46, 0.6, 2.1),
+    opacity 1s ease, filter 0.75s ease;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+
+.cv-ring__item:focus-visible {
+  outline: 1px solid var(--cv-orange, #fe5416);
+  outline-offset: 6px;
+  border-radius: 24%;
+}
+
+.cv-ring__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24%;
+  opacity: 0;
+  transform: translate3d(0, 0, var(--cv-enter-depth, -100px));
+  transition: transform var(--cv-enter-duration, 1000ms) var(--cv-enter-delay, 0ms)
+      cubic-bezier(0.25, 1, 0.5, 1),
+    opacity var(--cv-enter-duration, 1000ms) var(--cv-enter-delay, 0ms) ease;
+  pointer-events: none;
+}
+
+/* 入场触发：由 JS 在挂载后两帧加上，避免首帧就被合成器折叠掉 */
+.cv-ring.is-revealed .cv-ring__item img {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* ---------- 涟漪：只作用于"没被 hover 的那几项" ---------- */
+.cv-ring.is-hovering .cv-ring__item:not(:hover):not(:focus-visible) {
+  opacity: var(--cv-item-opacity);
+  filter: blur(var(--cv-item-blur));
+}
+
+/* ---------- hover / 播放指示点 ---------- */
+.cv-ring__item::after {
+  content: '';
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  background-color: rgb(210, 210, 210);
+  transition: opacity 0.4s ease, background-color 0.4s ease;
+}
+
+.cv-ring__item:hover::after {
+  opacity: 1;
+}
+
+.cv-ring__item.is-playing::after {
+  background-color: var(--cv-blue, #0000ff);
+  animation: cv-ring-pulse 4s ease infinite;
+}
+
+.cv-ring__item.is-playing img {
+  animation: cv-ring-popup 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes cv-ring-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes cv-ring-popup {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* ---------- 新专光环 ---------- */
+.cv-ring__item.is-new::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  border: 1px solid var(--cv-orange, #fe5416);
+  background-color: rgba(254, 84, 22, 0.1);
+  border-radius: 24%;
+  opacity: 0;
+  animation: cv-ring-ringpulse 2s cubic-bezier(0.5, 1, 0.89, 1) infinite;
+}
+
+@keyframes cv-ring-ringpulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  25% {
+    opacity: 0.5;
+  }
+  60% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+/* 移动端的关键帧：绕自身中心转，不需要 translateX(-50%) */
+@keyframes cv-ring-spin-mobile {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg) scale(var(--cv-ring-scale));
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg) scale(var(--cv-ring-scale));
+  }
+}
+
+/* ---------- 移动端布局 ---------- */
+@media screen and (max-width: 768px) {
+  .cv-ring {
+    top: 50%;
+    animation-name: cv-ring-spin-mobile;
+  }
+}
+
+/* ---------- 无障碍降级 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cv-ring {
+    animation: none;
+    transform: translateX(-50%) rotate(var(--cv-spin-offset)) scale(var(--cv-ring-scale));
+  }
+  .cv-ring__item.is-new::before {
+    animation: none;
+    opacity: 0.4;
+  }
+  .cv-ring.is-revealed .cv-ring__item img {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 768px) {
+  .cv-ring {
+    transform: translate(-50%, -50%) rotate(0deg) scale(var(--cv-ring-scale));
+  }
+}
